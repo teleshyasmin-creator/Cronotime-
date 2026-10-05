@@ -1,0 +1,11 @@
+{
+  "name": "CronoTime",
+  "short_name": "CronoTime",
+  "description": "Cronograma semanal para Técnica de Segurança do Trabalho.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#17324d",
+  "lang": "pt-BR"
+}
