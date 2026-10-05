@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CronoTime</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f4f7f9;color:#17324d}
+header{background:#17324d;color:white;padding:22px 18px;border-radius:0 0 22px 22px}
+header h1{margin:0;font-size:28px} header p{margin:6px 0 0;opacity:.85}
+main{max-width:760px;margin:auto;padding:16px}
+.week{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:4px 0 16px}
+.day{border:0;background:white;border-radius:12px;padding:12px 5px;color:#17324d;font-weight:bold;cursor:pointer}
+.day.active{background:#1f7a8c;color:white}
+.card{background:white;border-radius:18px;padding:18px;box-shadow:0 3px 12px #17324d18;margin-bottom:14px}
+h2{margin:0 0 4px}.date{color:#6c7b87;font-size:14px}
+.task{display:flex;align-items:center;gap:10px;border:1px solid #e3e9ed;border-radius:12px;padding:12px;margin-top:9px}
+.task.done span{text-decoration:line-through;color:#89959e}
+.task input{width:20px;height:20px}
+.delete{margin-left:auto;border:0;background:none;color:#b04a4a;cursor:pointer;font-size:18px}
+.add{display:flex;gap:8px;margin-top:14px}.add input{flex:1;padding:13px;border:1px solid #ccd7de;border-radius:10px}
+.add button{border:0;border-radius:10px;padding:0 17px;background:#1f7a8c;color:white;font-weight:bold}
+.summary{display:flex;justify-content:space-between;background:#e8f3f5;padding:14px;border-radius:12px;font-size:14px}
+.small{color:#657681}
+</style>
+</head>
+<body>
+<header><h1>🦺 CronoTime</h1><p>Cronograma semanal • Técnica de Segurança do Trabalho</p></header>
+<main>
+<div class="week" id="week"></div>
+<div class="card">
+<h2 id="title">Segunda-feira</h2><div class="date" id="date"></div>
+<div id="tasks"></div>
+<div class="add"><input id="newTask" placeholder="Adicionar tarefa..."><button onclick="addTask()">Adicionar</button></div>
+</div>
+<div class="card">
+<div class="summary"><b>Resumo da semana</b><span id="summary">0 concluídas • 0 pendentes</span></div>
+<p class="small">As tarefas ficam salvas neste aparelho.</p>
+</div>
+</main>
+<script>
+const days=["Segunda","Terça","Quarta","Quinta","Sexta"];
+const full=["Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira"];
+let selected=0;
+let data=JSON.parse(localStorage.getItem("cronotime")||"{}");
+days.forEach((d,i)=>data[i]??=[]);
+function save(){localStorage.setItem("cronotime",JSON.stringify(data))}
+function renderWeek(){
+ document.getElementById("week").innerHTML=days.map((d,i)=>`<button class="day ${i===selected?'active':''}" onclick="selectDay(${i})">${d}</button>`).join("");
+}
+function selectDay(i){selected=i;render();document.getElementById("newTask").focus()}
+function render(){
+ renderWeek();
+ document.getElementById("title").textContent=full[selected];
+ const now=new Date(); document.getElementById("date").textContent="Planejamento das tarefas do dia";
+ document.getElementById("tasks").innerHTML=(data[selected]||[]).map((t,i)=>`
+ <div class="task ${t.done?'done':''}">
+ <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${i})">
+ <span>${escapeHtml(t.text)}</span>
+ <button class="delete" onclick="removeTask(${i})">×</button>
+ </div>`).join("") || '<p class="small">Nenhuma tarefa cadastrada ainda.</p>';
+ updateSummary();
+}
+function addTask(){
+ const input=document.getElementById("newTask"), text=input.value.trim(); if(!text)return;
+ data[selected].push({text,done:false}); input.value=""; save(); render();
+}
+function toggleTask(i){data[selected][i].done=!data[selected][i].done;save();render()}
+function removeTask(i){data[selected].splice(i,1);save();render()}
+function updateSummary(){
+ let all=Object.values(data).flat();let done=all.filter(x=>x.done).length;
+ document.getElementById("summary").textContent=`${done} concluídas • ${all.length-done} pendentes`;
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+document.getElementById("newTask").addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
+render();
+</script>
+</body>
+</html>
